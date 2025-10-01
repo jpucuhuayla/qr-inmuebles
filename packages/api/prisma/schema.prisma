@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Property {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  title          String
+  type           PropertyType
+  district       String
+  address        String?
+  area_m2        Decimal?
+  bedrooms       Int?
+  bathrooms      Int?
+  parking_spaces Int?
+  price_usd      Decimal?
+  status         Status   @default(disponible)
+  files          PropertyFile[]
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}
+
+enum PropertyType {
+  departamento
+  estacionamiento
+}
+
+enum Status {
+  disponible
+  reservado
+  vendido
+}
+
+model PropertyFile {
+  id            String    @id @default(uuid())
+  property      Property  @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  property_id   String
+  file_type     FileType
+  object_key    String
+  original_name String?
+  size_bytes    BigInt?
+  created_at    DateTime  @default(now())
+}
+
+enum FileType {
+  documento
+  imagen
+  video
+}

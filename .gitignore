@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables (IMPORTANT - NO SUBIR CREDENCIALES)
+.env
+.env.local
+.env.production
+.env.development
+**/.env
+**/.env.*
+
+# Build outputs
+dist/
+.next/
+build/
+out/
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Prisma
+packages/api/prisma/migrations/
+
+# Next.js
+packages/web/.next/
+packages/web/out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Railway
+.railway/
