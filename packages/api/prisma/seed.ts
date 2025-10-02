@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, PropertyType } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -16,9 +16,9 @@ async function main() {
       create: {
         slug: p.slug,
         title: p.title,
-        type: p.type as any,
+        type: p.type as PropertyType,
         district: p.district,
-        price_usd: p.price_usd as any,
+        price_usd: p.price_usd,
       },
     });
   }
