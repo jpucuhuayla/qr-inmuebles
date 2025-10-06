@@ -5,12 +5,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 @Injectable()
 export class S3Service {
   private client = new S3Client({
-    endpoint: process.env.S3_ENDPOINT,
-    forcePathStyle: true,
-    region: process.env.S3_REGION,
-    credentials: { accessKeyId: process.env.S3_ACCESS_KEY!, secretAccessKey: process.env.S3_SECRET_KEY! },
+    region: process.env.AWS_REGION,
+    // The SDK will automatically use AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY from environment variables
   });
-  private bucket = process.env.S3_BUCKET!;
+  private bucket = process.env.S3_BUCKET_NAME!;
 
   presignUpload(objectKey: string, contentType: string) {
     const cmd = new PutObjectCommand({ Bucket: this.bucket, Key: objectKey, ContentType: contentType });
