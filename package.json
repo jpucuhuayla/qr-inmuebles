@@ -7,7 +7,7 @@
     "dev": "pnpm -r dev",
     "lint": "pnpm -r lint",
     "db:push": "pnpm --filter api prisma db push",
-    "db:seed": "pnpm --filter api prisma db seed"
+    "db:seed": "pnpm --filter api exec prisma generate && pnpm --filter api exec ts-node prisma/seed.ts"
   },
   "workspaces": [
     "packages/*"
