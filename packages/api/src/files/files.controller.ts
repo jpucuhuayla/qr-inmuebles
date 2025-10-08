@@ -26,7 +26,7 @@ export class FilesController {
   async d(@Query("objectKey") objectKey: string) { return { url: await this.svc.presignDownload(objectKey) }; }
 
   @Post(":propertyId/register")
-  register(@Param("propertyId") propertyId: string, @Body() body: { objectKey: string; originalName: string; fileType: string; sizeBytes?: number }) {
+  async register(@Param("propertyId") propertyId: string, @Body() body: { objectKey: string; originalName: string; fileType: string; sizeBytes?: number }) {
     // Detectar el tipo de archivo basado en el MIME type
     let file_type: "documento" | "imagen" | "video";
     if (body.fileType.startsWith("image/")) {
@@ -42,7 +42,13 @@ export class FilesController {
     // Convertir sizeBytes a BigInt si existe
     const size_bytes = body.sizeBytes ? BigInt(body.sizeBytes) : undefined;
 
-    return this.svc.register(propertyId, file_type, body.objectKey, body.originalName, size_bytes);
+    const result = await this.svc.register(propertyId, file_type, body.objectKey, body.originalName, size_bytes);
+
+    // Convertir BigInt a string para JSON
+    return {
+      ...result,
+      size_bytes: result.size_bytes ? result.size_bytes.toString() : null,
+    };
   }
 
   @Delete(":fileId")
