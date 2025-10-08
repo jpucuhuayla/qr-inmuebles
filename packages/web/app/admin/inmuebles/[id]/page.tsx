@@ -40,63 +40,85 @@ export default function EditProperty({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setUploading(true);
 
     try {
-      console.log("1. Pidiendo URL pre-firmada...");
-      // 1. Pedir URL pre-firmada a la API
-      const presignRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/presign-upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName: file.name, fileType: file.type }),
-      });
+      const fileArray = Array.from(files);
+      let successCount = 0;
+      let errorCount = 0;
 
-      if (!presignRes.ok) {
-        const errorText = await presignRes.text();
-        throw new Error(`Error en presign: ${errorText}`);
+      console.log(`Subiendo ${fileArray.length} archivo(s)...`);
+
+      for (const file of fileArray) {
+        try {
+          console.log(`1. Pidiendo URL pre-firmada para: ${file.name}`);
+          // 1. Pedir URL pre-firmada a la API
+          const presignRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/presign-upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fileName: file.name, fileType: file.type }),
+          });
+
+          if (!presignRes.ok) {
+            const errorText = await presignRes.text();
+            throw new Error(`Error en presign: ${errorText}`);
+          }
+
+          const { url, key } = await presignRes.json();
+          console.log(`2. Subiendo a S3: ${file.name}...`);
+
+          // 2. Subir el archivo directamente a S3
+          const uploadRes = await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+
+          if (!uploadRes.ok) {
+            throw new Error(`Error subiendo a S3: ${uploadRes.status}`);
+          }
+
+          console.log(`3. Registrando en BD: ${file.name}...`);
+
+          // 3. Registrar el archivo en nuestra base de datos
+          const registerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/${params.id}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              objectKey: key,
+              originalName: file.name,
+              fileType: file.type,
+              sizeBytes: file.size
+            }),
+          });
+
+          if (!registerRes.ok) {
+            const errorText = await registerRes.text();
+            console.error("Error del servidor:", errorText);
+            throw new Error(`Error registrando archivo: ${errorText}`);
+          }
+
+          console.log(`✓ ${file.name} subido correctamente`);
+          successCount++;
+        } catch (error) {
+          console.error(`✗ Error con ${file.name}:`, error);
+          errorCount++;
+        }
       }
-
-      const { url, key } = await presignRes.json();
-      console.log("2. URL obtenida, subiendo a S3...", key);
-
-      // 2. Subir el archivo directamente a S3
-      const uploadRes = await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-
-      if (!uploadRes.ok) {
-        throw new Error(`Error subiendo a S3: ${uploadRes.status}`);
-      }
-
-      console.log("3. Archivo subido a S3, registrando en BD...");
-
-      // 3. Registrar el archivo en nuestra base de datos
-      const registerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/${params.id}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          objectKey: key,
-          originalName: file.name,
-          fileType: file.type,
-          sizeBytes: file.size
-        }),
-      });
-
-      if (!registerRes.ok) {
-        const errorText = await registerRes.text();
-        console.error("Error del servidor:", errorText);
-        throw new Error(`Error registrando archivo: ${errorText}`);
-      }
-
-      console.log("4. Archivo registrado, refrescando lista...");
 
       // 4. Refrescar la lista de archivos
       await fetchProperty();
-      alert("Archivo subido exitosamente");
+
+      // Resetear el input para permitir seleccionar los mismos archivos de nuevo
+      e.target.value = '';
+
+      if (errorCount === 0) {
+        alert(`✓ ${successCount} archivo(s) subido(s) exitosamente`);
+      } else {
+        alert(`Subida completada: ${successCount} exitoso(s), ${errorCount} con error(es)`);
+      }
     } catch (error) {
-      console.error("Error subiendo archivo:", error);
-      alert(`Error al subir el archivo: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error("Error subiendo archivos:", error);
+      alert(`Error al subir archivos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setUploading(false);
     }
@@ -138,8 +160,10 @@ export default function EditProperty({ params }: { params: { id: string } }) {
           disabled={uploading}
           className="mb-4 border rounded p-2 w-full"
           accept="image/*,video/*,.pdf"
+          multiple
         />
-        {uploading && <p className="text-blue-600">Subiendo archivo...</p>}
+        {uploading && <p className="text-blue-600">Subiendo archivo(s)...</p>}
+        <p className="text-sm text-gray-500">Puedes seleccionar múltiples archivos a la vez</p>
       </section>
 
       <section className="mt-6 bg-white rounded-lg shadow p-6">
