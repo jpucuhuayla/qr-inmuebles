@@ -18,7 +18,7 @@ export class FilesService {
     return this.s3.presignDownload(objectKey);
   }
 
-  async register(property_id: string, file_type: "documento"|"imagen"|"video", object_key: string, original_name?: string, size_bytes?: number) {
+  async register(property_id: string, file_type: "documento"|"imagen"|"video", object_key: string, original_name?: string, size_bytes?: bigint) {
     return this.prisma.propertyFile.create({ data: { property_id, file_type, object_key, original_name, size_bytes } });
   }
 
