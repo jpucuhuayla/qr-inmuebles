@@ -46,30 +46,57 @@ export default function EditProperty({ params }: { params: { id: string } }) {
     setUploading(true);
 
     try {
+      console.log("1. Pidiendo URL pre-firmada...");
       // 1. Pedir URL pre-firmada a la API
       const presignRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/presign-upload`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName: file.name, fileType: file.type }),
       });
+
+      if (!presignRes.ok) {
+        const errorText = await presignRes.text();
+        throw new Error(`Error en presign: ${errorText}`);
+      }
+
       const { url, key } = await presignRes.json();
+      console.log("2. URL obtenida, subiendo a S3...", key);
 
       // 2. Subir el archivo directamente a S3
-      await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      const uploadRes = await fetch(url, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+
+      if (!uploadRes.ok) {
+        throw new Error(`Error subiendo a S3: ${uploadRes.status}`);
+      }
+
+      console.log("3. Archivo subido a S3, registrando en BD...");
 
       // 3. Registrar el archivo en nuestra base de datos
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/${params.id}/register`, {
+      const registerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/${params.id}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ objectKey: key, originalName: file.name, fileType: file.type }),
+        body: JSON.stringify({
+          objectKey: key,
+          originalName: file.name,
+          fileType: file.type,
+          sizeBytes: file.size
+        }),
       });
+
+      if (!registerRes.ok) {
+        const errorText = await registerRes.text();
+        console.error("Error del servidor:", errorText);
+        throw new Error(`Error registrando archivo: ${errorText}`);
+      }
+
+      console.log("4. Archivo registrado, refrescando lista...");
 
       // 4. Refrescar la lista de archivos
       await fetchProperty();
       alert("Archivo subido exitosamente");
     } catch (error) {
       console.error("Error subiendo archivo:", error);
-      alert("Error al subir el archivo");
+      alert(`Error al subir el archivo: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setUploading(false);
     }
