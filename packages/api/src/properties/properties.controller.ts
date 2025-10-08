@@ -8,9 +8,12 @@ export class PropertiesController {
   @Get()
   list(@Query() q: any) { return this.svc.list(q); }
 
-  @Get(":slug")
-  async bySlug(@Param("slug") slug: string) {
-    const p = await this.svc.bySlug(slug);
+  @Get(":slugOrId")
+  async bySlugOrId(@Param("slugOrId") slugOrId: string) {
+    // Si parece un UUID, buscar por ID, si no, por slug
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+    const p = isUUID ? await this.svc.byId(slugOrId) : await this.svc.bySlug(slugOrId);
+
     if (!p) return { error: "not_found" };
     const files: any = { imagenes: [], videos: [], documentos: [] };
     for (const f of (p as any).files as any[]) {

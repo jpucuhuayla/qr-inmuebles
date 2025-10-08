@@ -20,6 +20,13 @@ export class PropertiesService {
     });
   }
 
+  byId(id: string) {
+    return this.prisma.property.findUnique({
+      where: { id },
+      include: { files: true },
+    });
+  }
+
   create(data: any) { return this.prisma.property.create({ data }); }
   update(id: string, data: any) { return this.prisma.property.update({ where: { id }, data }); }
   delete(id: string) { return this.prisma.property.delete({ where: { id } }); }
