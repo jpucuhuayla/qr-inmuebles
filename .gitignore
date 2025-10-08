@@ -58,7 +58,7 @@ Thumbs.db
 *.temp
 
 # Prisma
-packages/api/prisma/migrations/
+# packages/api/prisma/migrations/ - Las migraciones deben estar en git
 
 # Next.js
 packages/web/.next/
