@@ -15,11 +15,18 @@ export class PropertiesController {
     const p = isUUID ? await this.svc.byId(slugOrId) : await this.svc.bySlug(slugOrId);
 
     if (!p) return { error: "not_found" };
+
     const files: any = { imagenes: [], videos: [], documentos: [] };
     for (const f of (p as any).files as any[]) {
-      if (f.file_type === "imagen") files.imagenes.push(f);
-      if (f.file_type === "video") files.videos.push(f);
-      if (f.file_type === "documento") files.documentos.push(f);
+      // Convertir BigInt a string para evitar errores de serialización
+      const fileWithStringSize = {
+        ...f,
+        size_bytes: f.size_bytes ? f.size_bytes.toString() : null,
+      };
+
+      if (f.file_type === "imagen") files.imagenes.push(fileWithStringSize);
+      if (f.file_type === "video") files.videos.push(fileWithStringSize);
+      if (f.file_type === "documento") files.documentos.push(fileWithStringSize);
     }
     return { ...p, files };
   }
