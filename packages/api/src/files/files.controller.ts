@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, Res } from "@nestjs/common";
+import { Response } from "express";
 import { FilesService } from "./files.service";
 
 @Controller("files")
@@ -23,7 +24,11 @@ export class FilesController {
   }
 
   @Get("presign-download")
-  async d(@Query("objectKey") objectKey: string) { return { url: await this.svc.presignDownload(objectKey) }; }
+  async d(@Query("objectKey") objectKey: string, @Res() res: Response) {
+    const url = await this.svc.presignDownload(objectKey);
+    // HTTP 302 redirect to S3 signed URL
+    return res.redirect(302, url);
+  }
 
   @Post(":propertyId/register")
   async register(@Param("propertyId") propertyId: string, @Body() body: { objectKey: string; originalName: string; fileType: string; sizeBytes?: number }) {
