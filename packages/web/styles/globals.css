@@ -1,15 +1,6 @@
-/* Reset básico */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background-color: #f9fafb;
-  color: #111827;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Arial font family for property listings */
 .font-arial {
