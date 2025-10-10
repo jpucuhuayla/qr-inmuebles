@@ -5,12 +5,30 @@ import { PrismaService } from "../prisma.service";
 export class PropertiesService {
   constructor(private prisma: PrismaService) {}
 
-  list(query: any) {
+  async list(query: any) {
     const where: any = {};
     if (query.district) where.district = query.district;
     if (query.type) where.type = query.type;
     if (query.status) where.status = query.status;
-    return this.prisma.property.findMany({ where, orderBy: { created_at: "desc" } });
+
+    const properties = await this.prisma.property.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      include: {
+        files: {
+          where: { file_type: "imagen" },
+          take: 1,
+          orderBy: { created_at: "asc" }
+        }
+      }
+    });
+
+    // Agregar la imagen principal a cada propiedad
+    return properties.map(p => ({
+      ...p,
+      main_image: p.main_image_key || (p.files[0]?.object_key || null),
+      files: undefined // No enviar todos los archivos en el listado
+    }));
   }
 
   bySlug(slug: string) {

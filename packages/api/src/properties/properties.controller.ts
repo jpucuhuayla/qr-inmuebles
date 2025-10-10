@@ -10,9 +10,9 @@ export class PropertiesController {
 
   @Get(":slugOrId")
   async bySlugOrId(@Param("slugOrId") slugOrId: string) {
-    // Si parece un UUID, buscar por ID, si no, por slug
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
-    const p = isUUID ? await this.svc.byId(slugOrId) : await this.svc.bySlug(slugOrId);
+    // Intentar buscar por ID primero, luego por slug
+    let p = await this.svc.byId(slugOrId);
+    if (!p) p = await this.svc.bySlug(slugOrId);
 
     if (!p) return { error: "not_found" };
 

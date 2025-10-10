@@ -1,3 +1,17 @@
-/* Placeholder global styles; Tailwind optional for MVP. */
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-.container { max-width: 1100px; margin: 0 auto; }
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+/* Arial font family for property listings */
+.font-arial {
+  font-family: Arial, Helvetica, sans-serif;
+}
